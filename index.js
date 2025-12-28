@@ -44,7 +44,6 @@ const c_files = fs.readdirSync(dir, { recursive: true })
   .filter(i => fs.lstatSync(i).isFile())
   .filter(i => i.endsWith(".c"))
   .map(i => path.resolve(i))
-console.log(c_files)
 
 const processFile = (filepath, query) => {
   const fileContents = fs.readFileSync(filepath).toString()
@@ -58,7 +57,6 @@ const processFile = (filepath, query) => {
   }
 
   const signatures = signature_text.map(st => st + ";")
-  console.log(signatures)
 
   return signatures
 }
@@ -113,7 +111,6 @@ const generateHeader = (filepath) => {
   const base_name = path.basename(filepath)
   const extensionless_name = base_name.slice(0, base_name.lastIndexOf("."))
   const header_filename = path.join(dir_name, extensionless_name + ".h")
-  console.log("header_filename: ", header_filename)
   const c_file_sigs = processFile(filepath, c_query)
   const lines = writeHeader(header_filename, c_file_sigs)
 }
@@ -121,12 +118,3 @@ const generateHeader = (filepath) => {
 for (const c_file of c_files) {
   generateHeader(c_file)
 }
-
-
-
-
-
-
-
-
-console.log(process.argv.slice(2))
