@@ -39,6 +39,7 @@ try {
 }
 
 const c_files = fs.readdirSync(dir, { recursive: true })
+  .filter(i => i !== "main.c")
   .map(fname => path.join(dir, fname))
   .filter(i => fs.lstatSync(i).isFile())
   .filter(i => i.endsWith(".c"))
@@ -75,6 +76,15 @@ const h_query = new Parser.Query(C_Lang,
   )`);
 
 const writeHeader = (filepath, signatures) => {
+  try {
+    if (!fs.lstatSync(filepath).isFile()) {
+      fs.writeFileSync(filepath, signatures.join("\n"))
+      return
+    }
+  } catch (error) {
+    fs.writeFileSync(filepath, signatures.join("\n"))
+    return
+  }
   const fileContents = fs.readFileSync(filepath).toString()
   const lines = fileContents.split("\n")
 
@@ -93,7 +103,7 @@ const writeHeader = (filepath, signatures) => {
   }
 
   const result = [...lines, ...signatures]
-  fs.writeFileSync(header_filename, result.join("\n"))
+  fs.writeFileSync(filepath, result.join("\n"))
 
   return result
 }
@@ -103,6 +113,7 @@ const generateHeader = (filepath) => {
   const base_name = path.basename(filepath)
   const extensionless_name = base_name.slice(0, base_name.lastIndexOf("."))
   const header_filename = path.join(dir_name, extensionless_name + ".h")
+  console.log("header_filename: ", header_filename)
   const c_file_sigs = processFile(filepath, c_query)
   const lines = writeHeader(header_filename, c_file_sigs)
 }
