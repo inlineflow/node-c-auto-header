@@ -13,7 +13,7 @@ const hashString = (s) => {
 
 const processFile = (filepath, query) => {
   const fileContents = fs.readFileSync(filepath).toString()
-  console.log(fileContents)
+  // console.log(fileContents)
   const tree = parser.parse(fileContents)
 
   const matches = query.matches(tree.rootNode)
@@ -21,10 +21,11 @@ const processFile = (filepath, query) => {
   for (const match of matches) {
     const t1 = match.captures.map(c => tree.getText(c.node))
     signature_text.push(t1.join(" "))
-    console.log(t1)
+    // console.log(t1)
   }
 
   const signatures = signature_text.map(st => st + ";")
+  console.log(signatures)
   const signature_hashes = signatures.map(sig => ({
     signature: sig,
     hash: hashString(sig),
@@ -35,13 +36,13 @@ const processFile = (filepath, query) => {
 
 const c_query = new Parser.Query(C_Lang,
   `(function_definition ;
-  type: (type_identifier) @type;
+  type: (_) @type;
   declarator: (function_declarator ) @decl 
   )`);
 
 const h_query = new Parser.Query(C_Lang,
   `(declaration ;
-  type: (type_identifier) @type;
+  type: (_) @type;
   declarator: (function_declarator ) @decl 
   )`);
 
@@ -60,19 +61,19 @@ const h_file_hashes = processFile(header_filename, h_query)
 console.log(c_file_hashes);
 console.log(h_file_hashes);
 
-const data = []
-for (const c_hash of c_file_hashes) {
-  for (const h_hash of h_file_hashes) {
-    if (c_hash.hash === h_hash.hash) {
-      data.push(c_hash)
-    }
-  }
-}
+// const data = []
+// for (const c_hash of c_file_hashes) {
+//   for (const h_hash of h_file_hashes) {
+//     if (c_hash.hash === h_hash.hash) {
+//       data.push(c_hash)
+//     }
+//   }
+// }
 
 const writeHeader = (filepath, hashes) => {
   const fileContents = fs.readFileSync(filepath).toString()
   const lines = fileContents.split("\n")
-  const result = ""
+  // const result = ""
 
   const tree = parser.parse(fileContents)
 
@@ -85,14 +86,27 @@ const writeHeader = (filepath, hashes) => {
 
   for (const s of sets) {
     for (const e of s) {
-      console.log(lines[e])
+      lines.splice(e, 1)
+      // console.log(lines[e])
+      // if (hashes.map(h => h.signature).includes(lines[e])) {
+      //   console.log("Match: ", lines[e])
+      // } else {
+      //   // lines[e] = ""
+      //   lines.splice(e, 1)
+      // }
     }
   }
 
+  const result = [...lines, ...hashes.map(h => h.signature)]
+
+  return result
 }
 
+const data = c_file_hashes
+console.log("hashes: ")
 console.log(data)
-writeHeader(header_filename, data)
+const lines = writeHeader(header_filename, data)
+console.log(lines)
 
 // console.log(signatures)
 // console.log(signature_hashes)
